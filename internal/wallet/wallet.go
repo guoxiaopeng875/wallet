@@ -18,16 +18,3 @@ func (w *Wallet) CheckBalance(amount decimal.Decimal) error {
 	}
 	return nil
 }
-
-func (w *Wallet) Deposit(amount decimal.Decimal) {
-	w.Balance = w.Balance.Add(amount)
-}
-
-func (w *Wallet) Withdraw(amount decimal.Decimal) {
-	w.Balance = w.Balance.Sub(amount)
-}
-
-func (w *Wallet) Transfer(toWallet *Wallet, amount decimal.Decimal) {
-	w.Withdraw(amount)
-	toWallet.Deposit(amount)
-}

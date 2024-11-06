@@ -10,6 +10,7 @@ var (
 	InsufficientBalance = New(code.InvalidArgs, "insufficient balance")
 	RecordNotFound      = New(code.NotFound, "record not found")
 	InternalDB          = New(code.InternalServer, "database unknown error")
+	InternalServer      = New(code.InternalServer, "internal server error")
 )
 
 func New(code int, message string) *Error {

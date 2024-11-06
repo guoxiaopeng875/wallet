@@ -1,0 +1,9 @@
+{
+  "repository": {
+    "dsn": "user=postgres password=123456 host=localhost port=5432 dbname=wallet",
+    "migrate_dsn": "user=postgres password=123456 host=localhost port=5432"
+  },
+  "server": {
+    "address": "0.0.0.0:8080"
+  }
+}

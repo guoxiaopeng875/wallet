@@ -1,0 +1,8 @@
+{
+  "repository": {
+    "dsn": "user=postgres password=password host=localhost port=5432 dbname=wallet"
+  },
+  "server": {
+    "address": "0.0.0.0:8080"
+  }
+}

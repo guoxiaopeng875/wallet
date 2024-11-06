@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/guoxiaopeng875/wallet/internal/pkg/errors"
-	transaction2 "github.com/guoxiaopeng875/wallet/internal/wallet/transaction"
+	"github.com/guoxiaopeng875/wallet/internal/wallet/transaction"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -35,13 +35,7 @@ type UseCase interface {
 
 	// WalletTransactions retrieves all transactions associated with the specified wallet.
 	// Returns a list of transactions or an error if the wallet doesn't exist.
-	WalletTransactions(ctx context.Context, walletID uint) ([]*transaction2.Transaction, error)
-}
-
-// Locker .
-type Locker interface {
-	Lock(ctx context.Context, key string) error
-	Unlock(ctx context.Context, key string)
+	WalletTransactions(ctx context.Context, walletID uint) ([]transaction.Transaction, error)
 }
 
 // DBTx is database transaction.
@@ -52,9 +46,12 @@ type DBTx interface {
 // useCase implements UseCase.
 type useCase struct {
 	repo   Repository
-	txRepo transaction2.Repository
+	txRepo transaction.Repository
 	dbTx   DBTx
-	locker Locker
+}
+
+func NewUseCase(repo Repository, txRepo transaction.Repository, dbTx DBTx) UseCase {
+	return &useCase{repo: repo, txRepo: txRepo, dbTx: dbTx}
 }
 
 func (u *useCase) Deposit(ctx context.Context, walletID uint, amount decimal.Decimal) error {
@@ -69,8 +66,8 @@ func (u *useCase) Deposit(ctx context.Context, walletID uint, amount decimal.Dec
 		if err := u.repo.UpdateBalance(ctx, wallet, amount); err != nil {
 			return err
 		}
-		return u.txRepo.Create(ctx, &transaction2.Transaction{
-			Method:     transaction2.MethodDeposit,
+		return u.txRepo.Create(ctx, &transaction.Transaction{
+			Method:     transaction.MethodDeposit,
 			TxAt:       time.Now(),
 			Amount:     amount,
 			ToWalletID: wallet.ID,
@@ -93,8 +90,8 @@ func (u *useCase) Withdraw(ctx context.Context, walletID uint, amount decimal.De
 		if err := u.repo.UpdateBalance(ctx, wallet, amount.Neg()); err != nil {
 			return err
 		}
-		return u.txRepo.Create(ctx, &transaction2.Transaction{
-			Method:       transaction2.MethodWithdraw,
+		return u.txRepo.Create(ctx, &transaction.Transaction{
+			Method:       transaction.MethodWithdraw,
 			TxAt:         time.Now(),
 			Amount:       amount,
 			FromWalletID: wallet.ID,
@@ -128,8 +125,8 @@ func (u *useCase) Transfer(ctx context.Context, fromWalletID, toWalletID uint, a
 		if err := u.repo.UpdateBalance(ctx, toWallet, amount); err != nil {
 			return err
 		}
-		return u.txRepo.Create(ctx, &transaction2.Transaction{
-			Method:       transaction2.MethodTransfer,
+		return u.txRepo.Create(ctx, &transaction.Transaction{
+			Method:       transaction.MethodTransfer,
 			TxAt:         time.Now(),
 			Amount:       amount,
 			FromWalletID: fromWallet.ID,
@@ -142,7 +139,7 @@ func (u *useCase) Wallet(ctx context.Context, walletID uint) (*Wallet, error) {
 	return u.repo.Get(ctx, walletID)
 }
 
-func (u *useCase) WalletTransactions(ctx context.Context, walletID uint) ([]*transaction2.Transaction, error) {
+func (u *useCase) WalletTransactions(ctx context.Context, walletID uint) ([]transaction.Transaction, error) {
 	wallet, err := u.repo.Get(ctx, walletID)
 	if err != nil {
 		return nil, err

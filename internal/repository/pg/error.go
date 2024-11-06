@@ -5,13 +5,13 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func wrapError(err error) *errors.Error {
+func wrapError(err error) error {
 	if err == nil {
-		return nil
+		return err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		return errors.RecordNotFound
+		return errors.RecordNotFound.WithCause(err)
 	}
 	// TODO handle more specific errors
-	return errors.InternalDB
+	return errors.InternalDB.WithCause(err)
 }
